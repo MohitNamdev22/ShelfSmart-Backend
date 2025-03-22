@@ -57,4 +57,10 @@ public class InventoryController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @GetMapping("/low-stock")
+    public ResponseEntity<List<InventoryItem>> getLowStockItems() {
+        List<InventoryItem> lowStockItems = inventoryService.getLowStockItems();
+        return ResponseEntity.ok(lowStockItems);
+    }
 }

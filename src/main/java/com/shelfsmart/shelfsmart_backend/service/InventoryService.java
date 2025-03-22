@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class InventoryService {
@@ -48,5 +49,11 @@ public class InventoryService {
         } else {
             throw new RuntimeException("Inventory item with ID " + id + " not found");
         }
+    }
+
+    public List<InventoryItem> getLowStockItems() {
+        return inventoryRepository.findAll().stream()
+                .filter(item -> item.getThreshold() != null && item.getQuantity() < item.getThreshold())
+                .collect(Collectors.toList());
     }
 }
