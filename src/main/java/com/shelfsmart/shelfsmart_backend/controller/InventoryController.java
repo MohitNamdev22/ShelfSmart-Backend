@@ -36,6 +36,12 @@ public class InventoryController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/low-stock")
+    public ResponseEntity<List<InventoryItem>> getLowStockItems() {
+        List<InventoryItem> lowStockItems = inventoryService.getLowStockItems();
+        return ResponseEntity.ok(lowStockItems);
+    }
+
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<InventoryItem> updateInventoryItem(@PathVariable Long id, @RequestBody InventoryItem item) {

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
+@RequestMapping("/user")
 public class UserController {
     @Autowired
     private UserService userService;
@@ -28,5 +29,13 @@ public class UserController {
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+    }
+
+    @GetMapping
+    public ResponseEntity<User> getCurrentUser() {
+        User user = userService.getCurrentUser();
+        // Optionally hide sensitive fields (e.g., password)
+        user.setPassword(null);
+        return ResponseEntity.ok(user);
     }
 }

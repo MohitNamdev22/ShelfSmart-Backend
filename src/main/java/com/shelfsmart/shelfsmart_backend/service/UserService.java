@@ -4,6 +4,8 @@ import com.shelfsmart.shelfsmart_backend.model.User;
 import com.shelfsmart.shelfsmart_backend.repository.UserRepository;
 import com.shelfsmart.shelfsmart_backend.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -38,5 +40,12 @@ public class UserService {
 
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    public User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName(); // Email from JWT
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }
