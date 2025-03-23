@@ -64,12 +64,20 @@ public class InventoryController {
             InventoryItem updatedItem = inventoryService.consumeItem(id, request.getQuantity());
             return ResponseEntity.ok(updatedItem);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(null); // Or a custom error response
+            return ResponseEntity.badRequest().body(null);
         }
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<InventoryItem>> searchInventoryItems(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String stockLevel) {
+        List<InventoryItem> items = inventoryService.searchItems(name, category, stockLevel);
+        return ResponseEntity.ok(items);
     }
 }
 
-// DTO for consume request
 class ConsumeRequest {
     private int quantity;
 

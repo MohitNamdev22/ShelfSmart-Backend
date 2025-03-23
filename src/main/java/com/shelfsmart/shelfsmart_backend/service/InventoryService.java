@@ -26,7 +26,7 @@ public class InventoryService {
     private StockMovementRepository stockMovementRepository;
 
     @Autowired
-    private UserService userService; // To get user ID from email
+    private UserService userService;
 
     private Long getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -133,5 +133,22 @@ public class InventoryService {
         } else {
             throw new RuntimeException("Inventory item with ID " + id + " not found");
         }
+    }
+
+    public List<InventoryItem> searchItems(String name, String category, String stockLevel) {
+        return inventoryRepository.findAll().stream()
+                .filter(item -> (name == null || item.getName().toLowerCase().contains(name.toLowerCase())))
+                .filter(item -> (category == null || item.getCategory().equalsIgnoreCase(category)))
+                .filter(item -> {
+                    if (stockLevel == null) return true;
+                    if ("low".equalsIgnoreCase(stockLevel)) {
+                        return item.getThreshold() != null && item.getQuantity() < item.getThreshold();
+                    }
+                    if ("normal".equalsIgnoreCase(stockLevel)) {
+                        return item.getThreshold() == null || item.getQuantity() >= item.getThreshold();
+                    }
+                    return true; // Ignore invalid stockLevel values
+                })
+                .collect(Collectors.toList());
     }
 }
