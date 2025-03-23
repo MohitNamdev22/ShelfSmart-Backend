@@ -2,9 +2,12 @@ package com.shelfsmart.shelfsmart_backend.service;
 
 import com.shelfsmart.shelfsmart_backend.model.InventoryItem;
 import com.shelfsmart.shelfsmart_backend.model.StockMovement;
+import com.shelfsmart.shelfsmart_backend.model.User;
 import com.shelfsmart.shelfsmart_backend.repository.InventoryRepository;
 import com.shelfsmart.shelfsmart_backend.repository.StockMovementRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -22,10 +25,22 @@ public class InventoryService {
     @Autowired
     private StockMovementRepository stockMovementRepository;
 
+    @Autowired
+    private UserService userService; // To get user ID from email
+
+    private Long getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        return userService.getUserByEmail(email)
+                .map(User::getId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
     public InventoryItem addItem(InventoryItem item) {
         InventoryItem savedItem = inventoryRepository.save(item);
         stockMovementRepository.save(new StockMovement(
                 savedItem.getId(),
+                getCurrentUserId(),
                 savedItem.getQuantity(),
                 "ADDED",
                 LocalDateTime.now()
@@ -56,6 +71,7 @@ public class InventoryService {
             if (quantityChange != 0) {
                 stockMovementRepository.save(new StockMovement(
                         id,
+                        getCurrentUserId(),
                         quantityChange,
                         "UPDATED",
                         LocalDateTime.now()
@@ -74,6 +90,7 @@ public class InventoryService {
             inventoryRepository.deleteById(id);
             stockMovementRepository.save(new StockMovement(
                     id,
+                    getCurrentUserId(),
                     -quantity,
                     "DELETED",
                     LocalDateTime.now()
@@ -94,5 +111,27 @@ public class InventoryService {
         return inventoryRepository.findAll().stream()
                 .filter(item -> item.getExpiryDate() != null && !item.getExpiryDate().isAfter(thresholdDate))
                 .collect(Collectors.toList());
+    }
+
+    public InventoryItem consumeItem(Long id, int quantity) {
+        Optional<InventoryItem> itemOptional = inventoryRepository.findById(id);
+        if (itemOptional.isPresent()) {
+            InventoryItem item = itemOptional.get();
+            if (item.getQuantity() < quantity) {
+                throw new RuntimeException("Insufficient stock for item ID " + id);
+            }
+            item.setQuantity(item.getQuantity() - quantity);
+            InventoryItem updatedItem = inventoryRepository.save(item);
+            stockMovementRepository.save(new StockMovement(
+                    id,
+                    getCurrentUserId(),
+                    -quantity,
+                    "CONSUMED",
+                    LocalDateTime.now()
+            ));
+            return updatedItem;
+        } else {
+            throw new RuntimeException("Inventory item with ID " + id + " not found");
+        }
     }
 }

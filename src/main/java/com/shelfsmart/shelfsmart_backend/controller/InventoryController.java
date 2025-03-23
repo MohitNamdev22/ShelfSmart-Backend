@@ -58,9 +58,21 @@ public class InventoryController {
         }
     }
 
-    @GetMapping("/low-stock")
-    public ResponseEntity<List<InventoryItem>> getLowStockItems() {
-        List<InventoryItem> lowStockItems = inventoryService.getLowStockItems();
-        return ResponseEntity.ok(lowStockItems);
+    @PostMapping("/{id}/consume")
+    public ResponseEntity<InventoryItem> consumeInventoryItem(@PathVariable Long id, @RequestBody ConsumeRequest request) {
+        try {
+            InventoryItem updatedItem = inventoryService.consumeItem(id, request.getQuantity());
+            return ResponseEntity.ok(updatedItem);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(null); // Or a custom error response
+        }
     }
+}
+
+// DTO for consume request
+class ConsumeRequest {
+    private int quantity;
+
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
 }

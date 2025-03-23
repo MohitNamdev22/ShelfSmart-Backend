@@ -10,4 +10,4 @@ public class ShelfsmartBackendApplication {
 		SpringApplication.run(ShelfsmartBackendApplication.class, args);
 	}
 
-}
+}	
