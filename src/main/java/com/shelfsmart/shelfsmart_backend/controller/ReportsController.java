@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
@@ -24,7 +25,7 @@ public class ReportsController {
     private StockMovementRepository stockMovementRepository;
 
     @Autowired
-    private InventoryService inventoryService; // Add this to fetch item names
+    private InventoryService inventoryService;
 
     @GetMapping("/daily")
     public ResponseEntity<byte[]> getDailyReport() {
@@ -44,12 +45,24 @@ public class ReportsController {
         return createCsvResponse(csv, "weekly-report-" + LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) + ".csv");
     }
 
+    @GetMapping("/custom")
+    public ResponseEntity<byte[]> getCustomReport(
+            @RequestParam("startDate") String startDateStr,
+            @RequestParam("endDate") String endDateStr) {
+        LocalDateTime startDate = LocalDate.parse(startDateStr).atStartOfDay();
+        LocalDateTime endDate = LocalDate.parse(endDateStr).plusDays(1).atStartOfDay(); // Include end date
+        List<StockMovement> movements = stockMovementRepository.findByTimestampBetween(startDate, endDate);
+        String csv = generateCsv(movements);
+        String filename = "custom-report-" + startDateStr + "-to-" + endDateStr + ".csv";
+        return createCsvResponse(csv, filename);
+    }
+
     private String generateCsv(List<StockMovement> movements) {
         StringBuilder csv = new StringBuilder("MovementId,ItemId,ItemName,QuantityChanged,MovementType,Timestamp\n");
         for (StockMovement movement : movements) {
             String itemName = inventoryService.getItemById(movement.getItemId())
-                    .map(item -> "\"" + item.getName() + "\"") // Quote to handle commas in names
-                    .orElse("Unknown"); // Fallback if item is deleted
+                    .map(item -> "\"" + item.getName() + "\"")
+                    .orElse("Unknown");
             csv.append(movement.getMovementId()).append(",")
                     .append(movement.getItemId()).append(",")
                     .append(itemName).append(",")
