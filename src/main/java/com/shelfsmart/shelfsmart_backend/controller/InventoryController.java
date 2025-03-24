@@ -1,7 +1,10 @@
 package com.shelfsmart.shelfsmart_backend.controller;
 
 import com.shelfsmart.shelfsmart_backend.model.InventoryItem;
+import com.shelfsmart.shelfsmart_backend.model.User;
 import com.shelfsmart.shelfsmart_backend.service.InventoryService;
+import com.shelfsmart.shelfsmart_backend.service.UserActivityService;
+import com.shelfsmart.shelfsmart_backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,10 +19,19 @@ public class InventoryController {
     @Autowired
     private InventoryService inventoryService;
 
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private UserActivityService userActivityService;
+
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<InventoryItem> addInventoryItem(@RequestBody InventoryItem item) {
         InventoryItem savedItem = inventoryService.addItem(item);
+        User user = userService.getCurrentUser();
+        userActivityService.logActivity(user, "ITEM_ADDED", "Added item: " + item.getName());
         return ResponseEntity.status(201).body(savedItem);
     }
 
@@ -47,6 +59,8 @@ public class InventoryController {
     public ResponseEntity<InventoryItem> updateInventoryItem(@PathVariable Long id, @RequestBody InventoryItem item) {
         try {
             InventoryItem updatedItem = inventoryService.updateItem(id, item);
+            User user = userService.getCurrentUser();
+            userActivityService.logActivity(user, "ITEM_UPDATED", "Updated item: " + item.getName());
             return ResponseEntity.ok(updatedItem);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -57,7 +71,11 @@ public class InventoryController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteInventoryItem(@PathVariable Long id) {
         try {
+            InventoryItem item = inventoryService.getItemById(id)
+                    .orElseThrow(() -> new RuntimeException("Item not found"));
             inventoryService.deleteItem(id);
+            User user = userService.getCurrentUser();
+            userActivityService.logActivity(user, "ITEM_DELETED", "Deleted item: " + item.getName());
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -68,6 +86,9 @@ public class InventoryController {
     public ResponseEntity<InventoryItem> consumeInventoryItem(@PathVariable Long id, @RequestBody ConsumeRequest request) {
         try {
             InventoryItem updatedItem = inventoryService.consumeItem(id, request.getQuantity());
+            User user = userService.getCurrentUser();
+            userActivityService.logActivity(user, "ITEM_CONSUMED",
+                    "Consumed " + request.getQuantity() + " units of item: " + updatedItem.getName());
             return ResponseEntity.ok(updatedItem);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(null);
