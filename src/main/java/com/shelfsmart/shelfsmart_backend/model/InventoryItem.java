@@ -1,27 +1,25 @@
 package com.shelfsmart.shelfsmart_backend.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
+import jakarta.persistence.*;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
 @Entity
+@Table(name = "inventory_item")
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class InventoryItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String name;
-    private int quantity;
+    private Integer quantity;
     private LocalDate expiryDate;
     private String category;
-    private String supplierInfo;
     private Integer threshold;
+
+    @ManyToOne
+    @JoinColumn(name = "supplier_id")
+    private Supplier supplier; // Replaced supplierInfo
 }
