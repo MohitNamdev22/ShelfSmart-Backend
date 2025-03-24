@@ -65,7 +65,7 @@ public class InventoryService {
             item.setQuantity(updatedItem.getQuantity());
             item.setExpiryDate(updatedItem.getExpiryDate());
             item.setCategory(updatedItem.getCategory());
-            item.setSupplierInfo(updatedItem.getSupplierInfo());
+            item.setSupplier(updatedItem.getSupplier());
             item.setThreshold(updatedItem.getThreshold());
             InventoryItem savedItem = inventoryRepository.save(item);
             if (quantityChange != 0) {
