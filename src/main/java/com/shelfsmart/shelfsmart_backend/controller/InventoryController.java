@@ -2,15 +2,14 @@ package com.shelfsmart.shelfsmart_backend.controller;
 
 import com.shelfsmart.shelfsmart_backend.model.InventoryItem;
 import com.shelfsmart.shelfsmart_backend.model.User;
-import com.shelfsmart.shelfsmart_backend.service.InventoryService;
-import com.shelfsmart.shelfsmart_backend.service.UserActivityService;
-import com.shelfsmart.shelfsmart_backend.service.UserService;
+import com.shelfsmart.shelfsmart_backend.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/inventory")
@@ -24,6 +23,12 @@ public class InventoryController {
 
     @Autowired
     private UserActivityService userActivityService;
+
+    @Autowired
+    private InventoryTrendService inventoryTrendService;
+
+    @Autowired
+    private GeminiService geminiService;
 
 
     @PostMapping
@@ -102,6 +107,16 @@ public class InventoryController {
             @RequestParam(required = false) String stockLevel) {
         List<InventoryItem> items = inventoryService.searchItems(name, category, stockLevel);
         return ResponseEntity.ok(items);
+    }
+
+    @GetMapping("/suggestions")
+    public ResponseEntity<Map<String, List<Map<String, String>>>> getInventorySuggestions() {
+        String trends = inventoryTrendService.getInventoryTrends();
+        System.out.println("Trends Data: " + trends);
+        String prompt = "Based on this inventory and usage data: " + trends +
+                ", suggest items to restock or add to the inventory.";
+        Map<String, List<Map<String, String>>> suggestions = geminiService.generateSuggestions(prompt);
+        return ResponseEntity.ok(suggestions);
     }
 }
 
