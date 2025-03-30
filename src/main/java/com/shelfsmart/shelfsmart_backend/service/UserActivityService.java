@@ -15,6 +15,9 @@ public class UserActivityService {
     private UserActivityRepository userActivityRepository;
 
     public void logActivity(User user, String action, String description) {
+        if (user == null || user.getId() == null) {
+            throw new IllegalArgumentException("User or User ID cannot be null");
+        }
         UserActivity activity = new UserActivity();
         activity.setUser(user);
         activity.setAction(action);

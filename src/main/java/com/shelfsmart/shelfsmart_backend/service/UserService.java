@@ -3,6 +3,7 @@ package com.shelfsmart.shelfsmart_backend.service;
 import com.shelfsmart.shelfsmart_backend.model.User;
 import com.shelfsmart.shelfsmart_backend.repository.UserRepository;
 import com.shelfsmart.shelfsmart_backend.security.JwtUtil;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +24,7 @@ public class UserService {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Transactional
     public User registerUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(User.Role.USER);
