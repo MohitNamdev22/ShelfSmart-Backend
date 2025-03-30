@@ -2,6 +2,7 @@ package com.shelfsmart.shelfsmart_backend.controller;
 
 import com.shelfsmart.shelfsmart_backend.model.User;
 import com.shelfsmart.shelfsmart_backend.service.UserService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.shelfsmart.shelfsmart_backend.service.UserActivityService;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +20,9 @@ public class UserController {
     private UserActivityService userActivityService;
 
     @PostMapping("/register")
+    @Transactional
     public ResponseEntity<?> register(@RequestBody User user) {
-        User registeredUser = userService.registerUser(user);
+        User registeredUser = userService.registerUser(user); // Save user first
         userActivityService.logActivity(registeredUser, "REGISTER", "User registered with email: " + user.getEmail());
         return ResponseEntity.status(201).body(Map.of("message", "User registered successfully"));
     }
@@ -29,14 +31,14 @@ public class UserController {
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
         String token = userService.loginUser(credentials.get("email"), credentials.get("password"));
         User user = userService.getUserByEmail(credentials.get("email"))
-                .orElseThrow(() -> new RuntimeException("User not found")); // Fetch user for logging
+                .orElseThrow(() -> new RuntimeException("User not found"));
         userActivityService.logActivity(user, "LOGIN", "User logged in");
         return ResponseEntity.ok(Map.of("token", token));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
-        User user = userService.getCurrentUser(); // Get current user before logout
+        User user = userService.getCurrentUser();
         userActivityService.logActivity(user, "LOGOUT", "User logged out");
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }
@@ -44,7 +46,7 @@ public class UserController {
     @GetMapping
     public ResponseEntity<User> getCurrentUser() {
         User user = userService.getCurrentUser();
-        user.setPassword(null); // Hide sensitive field
+        user.setPassword(null); //hiding password
         return ResponseEntity.ok(user);
     }
 }
