@@ -35,4 +35,4 @@ build/
 .vscode/
 
 #Application config file
-application.properties
+src/main/resources/application.properties
