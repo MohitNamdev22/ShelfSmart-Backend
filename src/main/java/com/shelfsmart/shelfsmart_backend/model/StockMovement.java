@@ -10,9 +10,9 @@ public class StockMovement {
     private Long movementId;
 
     private Long itemId;
-    private Long userId; // New field to track the user
+    private Long userId;
     private int quantityChanged;
-    private String movementType; // e.g., "ADDED", "UPDATED", "DELETED", "CONSUMED"
+    private String movementType; // "ADDED", "UPDATED", "DELETED", "CONSUMED"
     private LocalDateTime timestamp;
 
     // Constructors

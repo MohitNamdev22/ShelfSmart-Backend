@@ -20,6 +20,6 @@ public class InventoryItem {
     private Integer threshold;
 
     @ManyToOne
-    @JoinColumn(name = "supplier_id")
-    private Supplier supplier; // Replaced supplierInfo
+    @JoinColumn(name = "supplier_id") //linked to supplier table
+    private Supplier supplier;
 }

@@ -25,7 +25,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private JwtUtil jwtUtil;
 
     @Autowired
-    private CustomUserDetailsService userDetailsService; // Use CustomUserDetailsService
+    private CustomUserDetailsService userDetailsService;
 
     private static final Logger logger = LoggerFactory.getLogger(JwtFilter.class);
 
