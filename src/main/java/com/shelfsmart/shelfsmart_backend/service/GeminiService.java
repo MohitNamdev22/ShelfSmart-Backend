@@ -62,30 +62,41 @@ public class GeminiService {
         String[] lines = rawText.split("\n");
         String currentCategory = null;
 
+
         for (String line : lines) {
             line = line.trim();
-            if (line.startsWith("**High Priority (Urgent)") || line.contains("High Priority (Urgent)")) {
+
+
+            if (line.matches("(?i).*high priority.*|.*urgent.*")) {
                 currentCategory = "High Urgency";
-            } else if (line.startsWith("**Medium Priority") || line.contains("Medium Priority")) {
+            } else if (line.matches("(?i).*medium priority.*")) {
                 currentCategory = "Medium Urgency";
-            } else if (line.startsWith("**Low Priority") || line.contains("Low Priority")) {
+            } else if (line.matches("(?i).*low priority.*")) {
                 currentCategory = "Low Urgency";
-            } else if (line.startsWith("**Important Notes") || line.contains("Important Notes")) {
+            } else if (line.matches("(?i).*important notes.*|.*considerations.*")) {
                 currentCategory = "Considerations";
-            } else if (line.startsWith("* **") && currentCategory != null && !currentCategory.equals("Considerations")) {
-                Pattern itemPattern = Pattern.compile("\\* \\*\\*([^:]+):\\*\\*\\s*(.*)");
+            }
+            // More flexible item pattern matching
+            else if (currentCategory != null && !currentCategory.equals("Considerations")) {
+                Pattern itemPattern = Pattern.compile("\\*+\\s*\\*?\\*?([^:*]+)[:*]?\\*?\\s*(.*)");
                 Matcher matcher = itemPattern.matcher(line);
                 if (matcher.find()) {
                     String item = matcher.group(1).trim();
                     String desc = matcher.group(2).trim();
-                    suggestions.get(currentCategory).add(Map.of("item", item, "description", desc));
+                    suggestions.get(currentCategory).add(Map.of(
+                            "item", item,
+                            "description", desc
+                    ));
                 }
-            } else if (line.startsWith("*") && "Considerations".equals(currentCategory)) {
-                suggestions.get("Considerations").add(Map.of("note", line.substring(1).trim()));
+            } else if (currentCategory != null && currentCategory.equals("Considerations")) {
+                if (line.startsWith("*") || line.startsWith("-")) {
+                    suggestions.get("Considerations").add(Map.of(
+                            "note", line.replaceFirst("[*-]", "").trim()
+                    ));
+                }
             }
         }
 
-        System.out.println("Parsed Suggestions: " + suggestions);
         return suggestions;
     }
 }
