@@ -24,7 +24,6 @@ public class UserService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @Transactional
     public User registerUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(User.Role.USER);
